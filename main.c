@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <plist/plist.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libimobiledevice/libimobiledevice.h>
 #include <libimobiledevice/lockdown.h>
 #include <libimobiledevice/afc.h>
@@ -62,13 +63,42 @@ int main(int argc, char **argv) {
         printf("%s\n", str);
         free(str);
     }
-
     
-    // err = lockdownd_start_service(control, HOUSE_ARREST_SERVICE_NAME, &service_descriptor);
-    // if (! service_descriptor) {
-    //     printf("empty service\n");
-    // }
-    // printf("port: %d\n", service_descriptor->port);
+    err = lockdownd_start_service(control, "com.apple.afc", &service_descriptor);
+    if (! service_descriptor) {
+        printf("empty service\n");
+    }
+    printf("port: %d\n", service_descriptor->port);
+    afc_client_t afc = NULL;
+    uint64_t handle;
+    const char device_dir[] = "/iTunes_Control/Ringtones";
+    const char sysinfoextended_path[] = "iTunes_Control/Ringtones/SysInfoExtended";
+    
+    if (AFC_E_SUCCESS != afc_client_new(phone, service_descriptor, &afc)) {
+        printf("create afc client failed!");
+        return EXIT_FAILURE;
+    }
+    afc_error_t afc_ret;
+    afc_ret = afc_make_directory(afc, device_dir);
+    if ((AFC_E_SUCCESS != afc_ret) && (AFC_E_OBJECT_EXISTS != afc_ret)) {
+        printf("mkdir error: %d\n", afc_ret);
+        return EXIT_FAILURE;
+    }
+    if (AFC_E_SUCCESS != afc_file_open(afc, sysinfoextended_path, AFC_FOPEN_WRONLY, &handle)) {
+        printf("open file failed\n");
+        return EXIT_FAILURE;
+    }
+
+    char *data = "123";
+    uint32_t bytes_written;
+    if (AFC_E_SUCCESS != afc_file_write(afc, handle, data, strlen(data), &bytes_written)) {
+        afc_file_close(afc, handle);
+        printf("write failed\n");
+        return EXIT_FAILURE;
+    }
+    afc_file_close(afc, handle);
+
+
 
     // err = house_arrest_client_new(phone, service_descriptor, &house_arrest);
     // if (!house_arrest) {
