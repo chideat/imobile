@@ -56,11 +56,11 @@ struct _Itdb_Track {
     int32  *year;
     int32  *volume;
     uint32 *soundcheck;
-    time_t *time_added;
-    time_t *time_modified;
-    time_t *time_played;
+    uint32 *time_added;
+    uint32 *time_modified;
+    uint32 *time_played;
     uint32 *bookmark_time;
-    uint32 *rating;
+    uint8 *rating;
     uint32 *playcount;
     uint32 *playcount2;
     uint32 *recent_playcount;
@@ -82,7 +82,7 @@ struct _Itdb_Track {
     float  *samplerate2;
     uint16 *unk126;
     uint32 *unk132;
-    time_t *time_released;
+    uint32 *time_released;
     uint16 *unk144;
     uint16 *explicit_flag;
     uint32 *unk148;
@@ -110,14 +110,14 @@ struct _Itdb_Track {
     uint32 *episode_nr;
     uint32 *unk220;
     uint32 *unk224;
-    uint32 *unk228, unk232, unk236, unk240, unk244;
+    uint32 *unk228, *unk232, *unk236, *unk240, *unk244;
     uint32 *gapless_data;
     uint32 *unk252;
     uint16 *gapless_track_flag;
     uint16 *gapless_album_flag;
 
-    uint32 *unk288_id1;
-    uint32 *unk480_id2;
+    uint32 *unk288_id;
+    uint32 *unk480_id;
     uint32 *unk500_0;
 };
 

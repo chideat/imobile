@@ -175,12 +175,13 @@ char *itdb_mhsd(Itdb_Ringtone *itdb, int index = 1) {
     char *cts = itdb->cts->contents;
     uint32 header_len = *(uint32 *)(cts + 4);
     uint32 total_len = *(uint32 *)(cts + 8);
-    uint32 mhsd_total_len;
     char *mhsd = cts + header_len;
-    for (int i = 1; i < index; i++) {
+    while (mhsd < cts + total_len) {
         if (mhsd[0] == 'm' && mhsd[1] == 'h' && mhsd[2] == 's' && mhsd[3] == 'd') {
-            mhsd_total_len = *(uint32 *)(mhsd + 8);
-            mhsd = mhsd + mhsd_total_len;
+            // ringtone type
+            if (*(uint32 *)(mhsd + 12) == 1)
+                break;
+            mhsd = mhsd + *(uint32 *)(mhsd + 8);
         }
     }
     return mhsd;
@@ -200,8 +201,16 @@ static uint32 *get32uint(char *cts, int seek) {
     return (uint32 *)(cts + seek);
 }
 
+static int32 *get32int(char *cts, int seek) {
+    return (int32 *)(cts + seek);
+}
+
 static uint16 *get16uint(char *cts, int seek) {
     return (uint16 *)(cts + seek);
+}
+
+static int16 *get16int(char *cts, int seek) {
+    return (int16 *)(cts + seek);
 }
 
 static uint8 *get8uint(char *cts, int seek) {
@@ -217,10 +226,9 @@ static float *get32float(char *cts, int seek) {
 }
 
 static long get_mhit(char *cts, long seek = 0) {
-    Itdb_mhit *mhit = new Itdb_mhit;
+    Itdb_Track *mhit = new Itdb_Track;
     uint32 header_len = *get32uint(cts, seek + 4);
     if (header_len > 0x9c) {
-        uint32 val32;
         mhit->id = get32uint(cts, seek + 16);
         mhit->visible = get32uint(cts, seek + 20);
         mhit->filetype_marker = get32uint(cts, seek + 24);
@@ -229,31 +237,31 @@ static long get_mhit(char *cts, long seek = 0) {
         mhit->compilation = get8uint(cts, seek + 30);
         mhit->rating = get8uint(cts, seek + 31);
         mhit->time_modified = get32uint(cts, seek + 32);  // time added
-        mhit->size = get32uint(cts, seek + 36);
-        mhit->tracklen = get32uint(cts, seek + 40);
-        mhit->track_nr = get32uint(cts, seek + 44);
-        mhit->tracks = get32uint(cts, seek + 48);
-        mhit->year = get32uint(cts, seek + 52);
-        mhit->bitrate = get32uint(cts, seek + 56);
-        val32 = get32uint(cts, seek + 60);
-        mhit->samplerate = val32 >> 16;
-        mhit->samplerate_low = val32 & 0xffff;
-        mhit->volume = get32uint(cts, seek + 64);
+        mhit->size = get32int(cts, seek + 36);
+        mhit->tracklen = get32int(cts, seek + 40);
+        mhit->track_nr = get32int(cts, seek + 44);
+        mhit->tracks = get32int(cts, seek + 48);
+        mhit->year = get32int(cts, seek + 52);
+        mhit->bitrate = get32int(cts, seek + 56);
+        // val32 = get32uint(cts, seek + 60);
+        // mhit->samplerate = val32 >> 16;
+        // mhit->samplerate_low = val32 & 0xffff;
+        mhit->volume = get32int(cts, seek + 64);
         mhit->starttime = get32uint(cts, seek + 68);
         mhit->stoptime = get32uint(cts, seek + 72);
         mhit->soundcheck = get32uint(cts, seek + 76);
         mhit->playcount = get32uint(cts, seek + 80);
         mhit->playcount2 = get32uint(cts, seek + 84);
         mhit->time_played = get32uint(cts, seek + 88);
-        mhit->cd_nr = get32uint(cts, seek + 92);
-        mhit->cds = get32uint(cts, seek + 96);
+        mhit->cd_nr = get32int(cts, seek + 92);
+        mhit->cds = get32int(cts, seek + 96);
         mhit->drm_userid = get32uint(cts, seek + 100);
         mhit->time_added = get32uint(cts, seek + 104);
         mhit->bookmark_time = get32uint(cts, seek + 108);
         mhit->dbid = get64uint(cts, seek + 112);
-        mhit->checked = get8int(cts, seek + 120);
-        mhit->app_rating = get8int(cts, seek + 121);
-        mhit->BPM = get16uint(cts, seek + 122);
+        mhit->checked = get8uint(cts, seek + 120);
+        mhit->app_rating = get8uint(cts, seek + 121);
+        mhit->BPM = get16int(cts, seek + 122);
         mhit->artwork_count = get16uint(cts, seek + 124);
         mhit->unk126 = get16uint(cts, seek + 126);
         mhit->artwork_size = get32uint(cts, seek + 128);
@@ -268,16 +276,16 @@ static long get_mhit(char *cts, long seek = 0) {
     if (header_len >= 0xf4) {
         mhit->skipcount = get32uint(cts, seek + 156);
         mhit->last_skipped = get32uint(cts, seek + 160);
-        mhit->has_artwork = get8int(cts, seek + 164);
-        mhit->skip_when_shuffling = get8int(cts, seek + 165);
-        mhit->skip_when_shuffling = get8int (cts, seek+165);
-        mhit->remember_playback_position = get8int (cts, seek+166);
-        mhit->flag4 = get8int (cts, seek+167);
+        mhit->has_artwork = get8uint(cts, seek + 164);
+        mhit->skip_when_shuffling = get8uint(cts, seek + 165);
+        mhit->skip_when_shuffling = get8uint (cts, seek+165);
+        mhit->remember_playback_position = get8uint (cts, seek+166);
+        mhit->flag4 = get8uint (cts, seek+167);
         mhit->dbid2 = get64uint (cts, seek+168);
-        mhit->lyrics_flag = get8int (cts, seek+176);
-        mhit->movie_flag = get8int (cts, seek+177);
-        mhit->mark_unplayed = get8int (cts, seek+178);
-        mhit->unk179 = get8int (cts, seek+179);
+        mhit->lyrics_flag = get8uint (cts, seek+176);
+        mhit->movie_flag = get8uint (cts, seek+177);
+        mhit->mark_unplayed = get8uint (cts, seek+178);
+        mhit->unk179 = get8uint (cts, seek+179);
         mhit->unk180 = get32uint (cts, seek+180);
         mhit->pregap = get32uint (cts, seek+184);
         mhit->samplecount = get64uint (cts, seek+188);
@@ -301,21 +309,23 @@ static long get_mhit(char *cts, long seek = 0) {
         mhit->gapless_track_flag = get16uint (cts, seek+256);
         mhit->gapless_album_flag = get16uint (cts, seek+258);
     }
+    if (header_len >= 584) {
+        mhit->unk288_id = get32uint(cts, seek + 288);
+        mhit->unk480_id = get32uint(cts, seek + 480);
+        mhit->unk500_0 = get32uint(cts, seek + 500);
+    }
     
     printf("id: %u\n", *mhit->id);
     printf("type1: %d\n", *mhit->type1);
     printf("type2: %d\n", *mhit->type2);
     printf("rating: %d\n", *mhit->rating);
-    printf("time_modified: %d\n", *mhit->time_modified);
+    printf("time_modified: %u\n", *mhit->time_modified - 2082844800);
     printf("filesize: %d\n", *mhit->size);
 
 
-    uint32 *unk288 = get32uint(cts, seek + 288);
-    uint32 *unk480 = get32uint(cts, seek + 480);
-    uint32 *unk500 = get32uint(cts, seek + 500);
-    printf("unk 288: %u,  %X\n", *unk288, *unk288);
-    printf("unk 480: %u,  %X\n", *unk480, *unk480);
-    printf("unk 500: %u,  %X\n", *unk500, *unk500);
+    printf("unk 288: %u,  %X\n", *mhit->unk288_id, *mhit->unk288_id);
+    printf("unk 480: %u,  %X\n", *mhit->unk480_id, *mhit->unk480_id);
+    printf("unk 500: %u,  %X\n", *mhit->unk500_0, *mhit->unk500_0);
 }
 
 char *itdb_mhit(char *mhlt, int index = 1) {
@@ -383,6 +393,12 @@ int main(int argc, char **argv) {
     }
     itdb->cts->length = fread(itdb->cts->contents, sizeof(char), size, file);
     itdb_zlib_decompress(itdb);
+
+    // for (int i = 0; i < itdb->cts->length; i++) {
+    //     putchar(itdb->cts->contents[i]);
+    // }
+    // return 0;
+
 
     // itdb_zlib_compress(itdb);
     
