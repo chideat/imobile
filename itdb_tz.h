@@ -6,6 +6,9 @@
 #define uint64 unsigned long long
 #endif
 
+#include "itdb.h"
+
+
 time_t device_time_mac_to_time_t(uint64 mactime) {
     if (mactime != 0) 
         return (time_t)(mactime - 2082844800 - timezone_shift);

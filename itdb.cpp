@@ -3,171 +3,71 @@
 #include <zlib.h>
 #include "itdb.h"
 #include "itdb_tz.h"
+#include "itdb_zlib.h"
+#include "util.h"
 
 #define iT_DB "./iTunesCDB"
 
-#define CHUNK 16384
+
+void itdb_mhods(char *mhit, int index = 1);
+
+char *itdb_mhbd(char *cts, long seek = 0) {
+    Itdb_Mhbd *mhbd = new Itdb_Mhbd;
+    mhbd->header_id = cts;
+    mhbd->header_len = get32uint(cts, seek + 4);
+    mhbd->total_len = get32uint(cts, seek + 8);
+    mhbd->unknown1 = get32uint(cts, seek + 12);
+    mhbd->version = get32uint(cts, seek + 16);
+    mhbd->num_children = get32uint(cts, seek + 20);
+    mhbd->db_id = get64uint(cts, seek + 24);
+    mhbd->platform = get16uint(cts, seek + 32);
+    mhbd->unk_0x22 = get16uint(cts, seek + 34);
+    mhbd->id_0x24 = get64uint(cts, seek + 36);
+    mhbd->unk_0x2c = get32uint(cts, seek + 44);
+    mhbd->hashing_scheme = get16uint(cts, seek + 48);
+    mhbd->unk_0x32 = get8uint(cts, seek + 50); // 20
+    mhbd->language_id = get8int(cts, seek + 70);
+    mhbd->db_persistent_id = get64uint(cts, seek + 72);
+    mhbd->unk_0x50 = get32uint(cts, seek + 80);
+    mhbd->unk_0x54 = get32uint(cts, seek + 0x54);
+    mhbd->hash58 = getuchar(cts, seek + 88);
+    mhbd->timezone_offset = get32int(cts, seek + 108);
+    mhbd->unk_0x70 = get16uint(cts, seek + 0x70);
+    mhbd->hash72 = getuchar(cts, seek + 114);
+    mhbd->audio_language = get16uint(cts, seek + 160);
+    mhbd->subtitle_language = get16uint(cts, seek + 162);
+    mhbd->unk_0xa4 = get16uint(cts, seek + 0xa4);
+    mhbd->unk_0xa6 = get16uint(cts, seek + 0xa6);
+    mhbd->unk_0xa8 = get16uint(cts, seek + 0xa8);
+    mhbd->align_0xa9 = getuchar(cts, seek + 0xa9);
+    mhbd->hashAB = getuchar(cts, seek + 0xaa);
+    mhbd->padding = getuchar(cts, seek + 0xaa + 57);
 
 
-static int zlib_inflate(char *outbuf, char *zdata, size_t compressed_size, size_t *uncompressed_size)
-{
-    int ret;
-    uint32 inpos = 0;
-    uint32 outpos = 0;
-    unsigned have;
-    z_stream strm;
-    unsigned char out[CHUNK];
-
-    /* allocate inflate state */
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
-    strm.avail_in = 0;
-    strm.next_in = Z_NULL;
-    ret = inflateInit(&strm);
-    if (ret != Z_OK)
-        return ret;
-
-    *uncompressed_size = 0;
-
-    /* decompress until deflate stream ends or end of file */
-    do {
-        strm.avail_in = CHUNK;
-	if (inpos+strm.avail_in > compressed_size) {
-	    strm.avail_in = compressed_size - inpos;
-	}
-        strm.next_in = (unsigned char*)zdata+inpos;
-	inpos+=strm.avail_in;
-
-        /* run inflate() on input until output buffer not full */
-        do {
-            strm.avail_out = CHUNK;
-            if (outbuf)  {
-                strm.next_out = (unsigned char*)(outbuf + outpos);
-            } else {
-                strm.next_out = out;
-            }
-            ret = inflate(&strm, Z_NO_FLUSH);
-           // g_assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
-            switch (ret) {
-            case Z_NEED_DICT:
-                ret = Z_DATA_ERROR;     /* and fall through */
-            case Z_DATA_ERROR:
-            case Z_MEM_ERROR:
-                (void)inflateEnd(&strm);
-                return ret;
-            }
-            have = CHUNK - strm.avail_out;
-	    *uncompressed_size += have;
-	    if (outbuf) {
-		outpos += have;
-	    }
-        } while (strm.avail_out == 0);
-
-        /* done when inflate() says it's done */
-    } while (ret != Z_STREAM_END);
-
-    /* clean up and return */
-    (void)inflateEnd(&strm);
-    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
-}
-
-
-typedef struct {
-    char *contents;
-    unsigned int length;
-} It_Content;
-
-typedef struct {
-    It_Content *cts;
-}Itdb_Ringtone;
-
-int itdb_zlib_decompress(Itdb_Ringtone *itdb) {
-    if (itdb == NULL || itdb->cts == NULL || itdb->cts->contents == NULL) {
-        throw 1;
-    }
-
-
-    It_Content *cts = itdb->cts;
-    unsigned int c_size = *(unsigned int*)(cts->contents + 8),
-                 h_size = *(unsigned int*)(cts->contents + 4);
-    size_t u_size = 0;
-
-    if (h_size < 0xA9) {
-#ifdef DEBUG
-        fprintf(stderr, "header is too small for iTunesCDB!\n");
-#endif
-        throw 1;
-    }
-    if (*(uchar*)(cts->contents + 0xA8) == 1) {
-        *(uchar*)(cts->contents + 0xA8) = 0;
-    }
-    else {
-        fprintf(stderr, "Warning: unknown value for 0xa8 in header, should be 1 for uncompressed");
-    }
-
-    if (zlib_inflate(NULL, cts->contents + h_size, c_size - h_size, &u_size) == 0) {
-        char *n_contents = new char[u_size + h_size];
-        memcpy(n_contents, cts->contents, h_size);
-
-        if (zlib_inflate(n_contents + h_size, cts->contents + h_size, c_size - h_size, &u_size) == 0) {
-            delete cts->contents;
-            cts->contents = n_contents;
-            cts->length = u_size + h_size;
-        }
-        else
-            throw 1;
-    }
-}
-
-
-int itdb_zlib_compress (Itdb_Ringtone *itdb) {
-    if (itdb == NULL || itdb->cts == NULL || itdb->cts->contents == NULL) {
-        throw 1;
-    }
-
-    It_Content *cts = itdb->cts;
-    uint32 header_len;
-    uLongf compressed_len;
-    uLongf uncompressed_len;
-    char *new_contents;
-    int status;
-
-    header_len = *(uint32*)(cts->contents+4);
-    uncompressed_len = *(uint32*)(cts->contents+8) - header_len;
-
-    if (header_len < 0xA9) {
-        fprintf(stderr, "Header is too small for iTunesCDB!\n");
-        throw 1;
-    }
-
-    /* compression flag */
-    if (*(uchar*)(cts->contents+0xa8) == 0) {
-	    *(uchar*)(cts->contents+0xa8) = 1;
-    }
-    else {
-	    fprintf (stderr, "Unknown value for 0xa8 in header: should be 0 for uncompressed, is %d.\n", *(uchar*)(cts->contents+0xa8));
-    }
-
-    compressed_len = compressBound (uncompressed_len);
-
-    new_contents = new char[header_len + compressed_len];
-    memcpy (new_contents, cts->contents, header_len);
-    status = compress2 ((uchar*)new_contents + header_len, &compressed_len, (uchar*)cts->contents + header_len, uncompressed_len, 1);
-    if (status != Z_OK) {
-	    delete new_contents;
-#ifdef DEBUG
-		fprintf(stderr, "Error compressing iTunesCDB file!\n");
-#endif
-        throw 1;
-    }
-    delete cts->contents;
-    /* update mhbd size */
-    *(uint32*)(new_contents+8) = compressed_len + header_len;
-    cts->contents = new_contents;
-    // cts->pos = compressed_len + header_len;
-
-    return 1;
+    printf("mhbd header_len: %u\n", *mhbd->header_len);
+    printf("mhbd total_len: %u\n", *mhbd->total_len);
+    printf("mhbd version: %u\n", *mhbd->version);
+    printf("mhbd num_children: %u\n", *mhbd->num_children);
+    printf("mhbd db_id: %llu\n", *mhbd->db_id);
+    printf("mhbd paltform: %u\n", *mhbd->platform);
+    printf("mhbd hashing_scheme: %llu\n", *mhbd->hashing_scheme);
+    printf("mhbd language_id: %c%c\n", mhbd->language_id[0], mhbd->language_id[1]);
+    printf("mhbd timezone offset: %llu\n", mhbd->timezone_offset);
+    // printf("mhbd hash58: ");
+    // for (int i = 0; i < 20; i ++) {
+    //     putchar(mhbd->hash58[i]);
+    // }
+    // putchar(10);
+    // printf("mhbd hash72: ");
+    // for (int i = 0; i < 46; i ++) {
+    //     putchar(mhbd->hash72[i]);
+    // }
+    // putchar(10);
+    // printf("mhbd hashAB: ");
+    // for (int i = 0; i < 57; i ++) {
+    //     putchar(mhbd->hashAB[i]);
+    // }
+    // putchar(10);
 }
 
 
@@ -176,7 +76,9 @@ char *itdb_mhsd(Itdb_Ringtone *itdb, int index = 1) {
     uint32 header_len = *(uint32 *)(cts + 4);
     uint32 total_len = *(uint32 *)(cts + 8);
     char *mhsd = cts + header_len;
-    while (mhsd < cts + total_len) {
+    int child_count = 0;
+    while (mhsd < cts + total_len && child_count < *(uint32 *)(cts + 20)) {
+        child_count ++;
         if (mhsd[0] == 'm' && mhsd[1] == 'h' && mhsd[2] == 's' && mhsd[3] == 'd') {
             // ringtone type
             if (*(uint32 *)(mhsd + 12) == 1)
@@ -193,40 +95,8 @@ char *itdb_mhlt(char *mhsd, int index = 1) {
     return mhlt;
 }
 
-static uint64 *get64uint(char *cts, int seek) {
-    return (uint64 *)(cts + seek);
-}
-
-static uint32 *get32uint(char *cts, int seek) {
-    return (uint32 *)(cts + seek);
-}
-
-static int32 *get32int(char *cts, int seek) {
-    return (int32 *)(cts + seek);
-}
-
-static uint16 *get16uint(char *cts, int seek) {
-    return (uint16 *)(cts + seek);
-}
-
-static int16 *get16int(char *cts, int seek) {
-    return (int16 *)(cts + seek);
-}
-
-static uint8 *get8uint(char *cts, int seek) {
-    return (uint8 *)(cts + seek);
-}
-
-static int8 *get8int(char *cts, int seek) {
-    return (int8 *)(cts + seek);
-}
-
-static float *get32float(char *cts, int seek) {
-    return (float *)(cts + seek);
-}
-
 static long get_mhit(char *cts, long seek = 0) {
-    Itdb_Track *mhit = new Itdb_Track;
+    Itdb_Mhit *mhit = new Itdb_Mhit;
     uint32 header_len = *get32uint(cts, seek + 4);
     if (header_len > 0x9c) {
         mhit->id = get32uint(cts, seek + 16);
@@ -336,6 +206,7 @@ char *itdb_mhit(char *mhlt, int index = 1) {
     for (int i = 0; i < count; i ++) {
         if (mhit[0] == 'm' && mhit[1] == 'h' && mhit[2] == 'i' && mhit[3] == 't') {
             get_mhit(mhit, 0);
+            itdb_mhods(mhit);
             mhit_total_len = *(uint32 *)(mhit + 8);
             mhit = mhit + mhit_total_len;
         }
@@ -346,7 +217,7 @@ char *itdb_mhit(char *mhlt, int index = 1) {
     return mhit;
 }
 
-void itdb_mhods(char *mhit, int index = 1) {
+void itdb_mhods(char *mhit, int index) {
     uint32 mhit_header_len = *(uint32 *)(mhit + 4);
     uint32 count = *(uint32 *)(mhit + 12);
     fprintf(stderr, "mhit header len: %u\n", mhit_header_len);
@@ -393,6 +264,7 @@ int main(int argc, char **argv) {
     }
     itdb->cts->length = fread(itdb->cts->contents, sizeof(char), size, file);
     itdb_zlib_decompress(itdb);
+    // fprintf(stderr, "mhbd header size:%u\n", *(uint32 *)(itdb->cts->contents + 4));
 
     // for (int i = 0; i < itdb->cts->length; i++) {
     //     putchar(itdb->cts->contents[i]);
@@ -401,6 +273,10 @@ int main(int argc, char **argv) {
 
 
     // itdb_zlib_compress(itdb);
+
+
+    return 0;
+    itdb_mhbd(itdb->cts->contents);
     
     char *cts = itdb_mhsd(itdb, 3);
     char *mhlt = itdb_mhlt(cts);

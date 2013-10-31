@@ -1,3 +1,6 @@
+#ifndef Itdb_H
+#define Itdb_H
+
 #ifndef uint32
 #define uint32 unsigned int
 #endif
@@ -34,13 +37,56 @@
 #define int8 char
 #endif
 
+
+typedef struct {
+    char *contents;
+    unsigned int length;
+} It_Content;
+
+typedef struct {
+    It_Content *cts;
+} Itdb_Ringtone;
+
+
 typedef struct _Itdb_Node {
     char name[5];
     char *buf;
 } Itdb_Node;
 
 
-struct _Itdb_Track {
+typedef struct _MhbdHeader {
+    char   *header_id; // 4
+    uint32 *header_len;
+    uint32 *total_len;
+    uint32 *unknown1;
+    uint32 *version;
+    uint32 *num_children;
+    uint64 *db_id;
+    uint16 *platform;
+    uint16 *unk_0x22;
+    uint64 *id_0x24;
+    uint32 *unk_0x2c;
+    uint16 *hashing_scheme;
+    uchar  *unk_0x32;// [20];
+    char   *language_id;// [2];
+    uint64 *db_persistent_id;
+    uint32 *unk_0x50;
+    uint32 *unk_0x54;
+    uchar  *hash58; //[20];
+    int32  *timezone_offset;
+    uint16 *unk_0x70;
+    uchar  *hash72; //[46];
+    uint16 *audio_language;
+    uint16 *subtitle_language;
+    uint16 *unk_0xa4;
+    uint16 *unk_0xa6;
+    uint16 *unk_0xa8;
+    uchar  *align_0xa9;
+    uchar  *hashAB; //[57];
+    uchar  *padding; // 
+} Itdb_Mhbd;
+
+typedef struct _Itdb_Mhit {
     Itdb_Node node;
     /* end of new fields in libgpod 0.5.0 */
     uint32 *id;
@@ -119,6 +165,7 @@ struct _Itdb_Track {
     uint32 *unk288_id;
     uint32 *unk480_id;
     uint32 *unk500_0;
-};
+} Itdb_Mhit;
 
-typedef _Itdb_Track Itdb_Track;
+
+#endif
