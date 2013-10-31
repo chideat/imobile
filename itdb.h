@@ -37,6 +37,7 @@
 #define int8 char
 #endif
 
+#define MAX_BUF 8192
 
 typedef struct {
     char *contents;
@@ -168,4 +169,25 @@ typedef struct _Itdb_Mhit {
 } Itdb_Mhit;
 
 
+typedef struct _Itdb_Mhod_Header {
+    char   header[4]; // 4
+    uint32 header_len;
+    uint32 total_len;
+    uint32 type;
+    uint64 unk_0xa0;
+} Itdb_Mhod_Header;
+
+
+typedef struct _Itdb_Mhod {
+    char   header[4]; // 4
+    uint32 header_len;
+    uint32 total_len;
+    uint32 type;
+    uint64 unk_0xa0;
+    uint32 unk_0xa8; // 1
+    uint32 length;
+    uint64 unk_0xb0; // 0
+    char   data[]; // padding
+    // with end 0000
+} Itdb_Mhod;
 #endif

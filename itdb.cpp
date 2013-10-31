@@ -6,7 +6,7 @@
 #include "itdb_zlib.h"
 #include "util.h"
 
-#define iT_DB "./iTunesCDB"
+#define iT_DB "./sample/iTunesCDB"
 
 
 void itdb_mhods(char *mhit, int index = 1);
@@ -231,6 +231,7 @@ void itdb_mhods(char *mhit, int index) {
         }
         if (mhod[0] == 'm' && mhod[1] == 'h' && mhod[2] == 'o' && mhod[3] == 'd') {
             mhod_total_len = *(uint32 *)(mhod + 8);
+            printf("mhod header len: %u, %u\n", *(uint32 *)(mhod + 4), *(uint32 *)(mhod + 8));
             // for (int j = 0; j < mhod_total_len; j++) {
             //     printf("%c", mhod[j]);
             // }
@@ -241,7 +242,7 @@ void itdb_mhods(char *mhit, int index) {
 
 
 int main(int argc, char **argv) {
-    char name[128] = "iTunesCDB";
+    char name[128] = "sample/iTunesCDB";
     if (argc == 2) {
         sprintf(name, "%s%s", name, argv[1]);
     }
@@ -275,7 +276,6 @@ int main(int argc, char **argv) {
     // itdb_zlib_compress(itdb);
 
 
-    return 0;
     itdb_mhbd(itdb->cts->contents);
     
     char *cts = itdb_mhsd(itdb, 3);
