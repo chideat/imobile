@@ -19,117 +19,148 @@ typedef struct _Itdb_Node {
 } Itdb_Node;
 
 
-typedef struct _MhbdHeader {
-    char   *header_id; // 4
-    uint32 *header_len;
-    uint32 *total_len;
-    uint32 *unknown1;
-    uint32 *version;
-    uint32 *num_children;
-    uint64 *db_id;
-    uint16 *platform;
-    uint16 *unk_0x22;
-    uint64 *id_0x24;
-    uint32 *unk_0x2c;
-    uint16 *hashing_scheme;
-    uchar  *unk_0x32;// [20];
-    char   *language_id;// [2];
-    uint64 *db_persistent_id;
-    uint32 *unk_0x50;
-    uint32 *unk_0x54;
-    uchar  *hash58; //[20];
-    int32  *timezone_offset;
-    uint16 *unk_0x70;
-    uchar  *hash72; //[46];
-    uint16 *audio_language;
-    uint16 *subtitle_language;
-    uint16 *unk_0xa4;
-    uint16 *unk_0xa6;
-    uint16 *unk_0xa8;
-    uchar  *align_0xa9;
-    uchar  *hashAB; //[57];
-    uchar  *padding; // 
+typedef struct _Itdb_Mhbd {
+    char   header_id[4];    // 0
+    uint32 header_len;      // 4
+    uint32 total_len;       // 8
+    uint32 unknown1;        // 12
+    uint32 version;         // 16
+    uint32 num_children;    // 20
+    uint64 db_id;           // 24
+    uint16 platform;        // 32
+    uint16 unk_0x22;        // 34
+    uint32 id_0x24_1;       // 36
+    uint32 id_0x24_2;       // 40
+    uint32 unk_0x2c;        // 44
+    uint16 hashing_scheme;  // 48
+    uint16 unk0x32;         // 50
+    uint32 unk0x34;         // 52
+    uint32 unk_0x38;        // 56 [20];
+    uint32 unk_0x3c;        // 60
+    uint32 unk_0x40;        // 64
+    uint16 unk_0x44;        // 68
+    char   language_id[2];  // 70 [2];
+    uint64 db_persistent_id; // 72
+    uint32 unk_0x50;         // 80
+    uint32 unk_0x54;         // 84
+    uchar  hash58[20]; //[20];  // 88
+    int32  timezone_offset;     // 108
+    uint16 unk_0x70;            // 112
+    uchar  hash72[46]; //[46];  // 114
+    uint16 audio_language;      // 160
+    uint16 subtitle_language;   // 162
+    uint16 unk_0xa4;            // 164
+    uint16 unk_0xa6;            // 166
+    uint16 unk_0xa8;            // 168
+    // // uchar  align_0xa9;          // 170
+    uchar  hashAB[57]; //[57];  // 170
+    uchar  padding[]; // 227
 } Itdb_Mhbd;
 
-typedef struct _Itdb_Mhit {
-    Itdb_Node node;
-    /* end of new fields in libgpod 0.5.0 */
-    uint32 *id;
-    int32  *size;
-    int32  *tracklen;
-    int32  *cd_nr;
-    int32  *cds;
-    int32  *track_nr;
-    int32  *tracks;
-    int32  *bitrate;
-    uint16 *samplerate;
-    uint16 *samplerate_low;
-    int32  *year;
-    int32  *volume;
-    uint32 *soundcheck;
-    uint32 *time_added;
-    uint32 *time_modified;
-    uint32 *time_played;
-    uint32 *bookmark_time;
-    uint8 *rating;
-    uint32 *playcount;
-    uint32 *playcount2;
-    uint32 *recent_playcount;
-    bool   *transferred;
-    int16  *BPM;
-    uint8  *app_rating;
-    uint8  *type1;
-    uint8  *type2;
-    uint8  *compilation;
-    uint32 *starttime;
-    uint32 *stoptime;
-    uint8  *checked;
-    uint64 *dbid;
-    uint32 *drm_userid;
-    uint32 *visible;
-    uint32 *filetype_marker;
-    uint16 *artwork_count;
-    uint32 *artwork_size;
-    float  *samplerate2;
-    uint16 *unk126;
-    uint32 *unk132;
-    uint32 *time_released;
-    uint16 *unk144;
-    uint16 *explicit_flag;
-    uint32 *unk148;
-    uint32 *unk152;
-    uint32 *skipcount;
-    uint32 *recent_skipcount;
-    uint32 *last_skipped;
-    uint8  *has_artwork;
-    uint8  *skip_when_shuffling;
-    uint8  *remember_playback_position;
-    uint8  *flag4;
-    uint64 *dbid2;
-    uint8  *lyrics_flag;
-    uint8  *movie_flag;
-    uint8  *mark_unplayed;
-    uint8  *unk179;
-    uint32 *unk180;
-    uint32 *pregap;
-    uint64 *samplecount;
-    uint32 *unk196;
-    uint32 *postgap;
-    uint32 *unk204;
-    uint32 *mediatype;
-    uint32 *season_nr;
-    uint32 *episode_nr;
-    uint32 *unk220;
-    uint32 *unk224;
-    uint32 *unk228, *unk232, *unk236, *unk240, *unk244;
-    uint32 *gapless_data;
-    uint32 *unk252;
-    uint16 *gapless_track_flag;
-    uint16 *gapless_album_flag;
 
-    uint32 *unk288_id;
-    uint32 *unk480_id;
-    uint32 *unk500_0;
+typedef struct _Itdb_Mhit_Header {
+    char header[4];
+    uint32 header_len;
+    uint32 total_len;
+    uint32 children;
+    char   buf[568];
+} Itdb_Mhit_Header;
+
+
+typedef struct _Itdb_Mhit{
+    char   header[4];         // 0
+    uint32 header_len;        // 4
+    uint32 total_len;         // 8
+    uint32 children;          // 12
+    uint32 id;                // 16
+    uint32 visible;           // 20
+    uint32 filetype_marker;   // 24
+    uint8  type1;             // 28
+    uint8  type2;             // 29
+    uint8  compilation;       // 30
+    uint8  rating;            // 31
+    uint32 time_modified;     // 32
+    int32  size;              // 36
+    int32  tracklen;          // 40
+    int32  track_nr;          // 44
+    int32  tracks;            // 48
+    int32  year;              // 52
+    int32  bitrate;           // 56
+    uint16 samplerate;        // 60
+    uint16 samplerate_low;    // 62
+    int32  volume;            // 64
+    uint32 starttime;         // 68
+    uint32 stoptime;          // 72
+    uint32 soundcheck;        // 76
+    uint32 playcount;         // 80
+    uint32 playcount2;        // 84
+    uint32 time_played;       // 88
+    int32  cd_nr;             // 92
+    int32  cds;               // 96
+    uint32 drm_userid;        // 100
+    uint32 time_added;        // 104
+    uint32 bookmark_time;     // 108
+    uint64 dbid;              // 112
+    uint8  checked;           // 120
+    uint8  app_rating;        // 121
+    int16  BPM;               // 122
+    uint16 artwork_count;     // 124
+    uint16 unk126;            // 126
+    uint32 artwork_size;      // 128
+    uint32 unk132;            // 132
+    float samplerate2;       // 136
+    uint32 time_released;     // 140
+    uint16 unk144;            // 144
+    uint16 explicit_flag;     // 146
+    uint32 unk148;            // 148
+    uint32 unk152;            // 152
+    // header_len > 0xf4
+    uint32 skipcount;         // 156
+    uint32 last_skipped;      // 160
+    uint8  has_artwork;       // 164
+    uint8  skip_when_shuffling; // 165
+    uint8  remember_playback_position;  // 166
+    uint8  flag4;             // 167
+    uint64 dbid2;             // 168
+    uint8  lyrics_flag;       // 176
+    uint8  movie_flag;        // 177
+    uint8  mark_unplayed;     // 178
+    uint8  unk179;            // 179
+    uint32 unk180;            // 180
+    uint32 pregap;            // 184
+    uint32 samplecount_1;       // 188
+    uint32 samplecount_2;       // 192
+    uint32 unk196;            // 196
+    uint32 postgap;           // 200
+    uint32 unk204;            // 204
+    uint32 mediatype;         // 208
+    uint32 season_nr;         // 212
+    uint32 episode_nr;        // 216
+    uint32 unk220;            // 220
+    uint32 unk224;
+    uint32 unk228;
+    uint32 unk232;
+    uint32 unk236;
+    uint32 unk240;
+    uint32 unk244;            // 244
+    uint32 gapless_data;      // 248
+    uint32 unk252;            // 252
+    uint16 gapless_track_flag;// 256
+    uint16 gapless_album_flag;// 258
+    uint32 unk260;            // 260
+    char   unk264[24];        // 264
+    uint32 unk288_id;         // 288
+    uint32 unk292;            // 292
+    char   unk296[56];        // 296
+    uint32 mhii_link;         // 352
+    uint32 unk356;            // 356
+    char   unk360[120];       // 360
+    uint32 unk480_id;         // 480
+    uint32 unk484;            // 484
+    uint64 unk488;            // 488
+    uint32 unk496;            // 496
+    uint32 unk500;            // 500
+    char   unk504[80];        // 504
 } Itdb_Mhit;
 
 

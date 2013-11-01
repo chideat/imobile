@@ -61,36 +61,42 @@ static void convert_utf8_to_utf16(char *source, uint32 len_s, char **target, uin
     *len_t = (uint32)((char *)targetStart - *target);
 }
 
-static uint64 *get64uint(char *cts, int seek) {
-    return (uint64 *)(cts + seek);
+
+inline uint32 _id() {
+
 }
 
-static uint32 *get32uint(char *cts, int seek) {
-    return (uint32 *)(cts + seek);
+
+inline uint64 get64uint(char *cts, int seek) {
+    return *(uint64 *)(cts + seek);
 }
 
-static int32 *get32int(char *cts, int seek) {
-    return (int32 *)(cts + seek);
+inline uint32 get32uint(char *cts, int seek) {
+    return *(uint32 *)(cts + seek);
 }
 
-static uint16 *get16uint(char *cts, int seek) {
-    return (uint16 *)(cts + seek);
+inline int32 get32int(char *cts, int seek) {
+    return *(int32 *)(cts + seek);
 }
 
-static int16 *get16int(char *cts, int seek) {
-    return (int16 *)(cts + seek);
+inline uint16 get16uint(char *cts, int seek) {
+    return *(uint16 *)(cts + seek);
 }
 
-static uint8 *get8uint(char *cts, int seek) {
-    return (uint8 *)(cts + seek);
+inline int16 get16int(char *cts, int seek) {
+    return *(int16 *)(cts + seek);
 }
 
-static int8 *get8int(char *cts, int seek) {
-    return (int8 *)(cts + seek);
+inline uint8 get8uint(char *cts, int seek) {
+    return *(uint8 *)(cts + seek);
 }
 
-static float *get32float(char *cts, int seek) {
-    return (float *)(cts + seek);
+inline int8 get8int(char *cts, int seek) {
+    return *(int8 *)(cts + seek);
+}
+
+inline float get32float(char *cts, int seek) {
+    return *(float *)(cts + seek);
 }
 
 #endif

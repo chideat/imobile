@@ -1,12 +1,13 @@
+#ifndef RINGTONE_PARSE_H
+#define RINGTONE_PARSE_H
 
 #include "itdb.h"
-#include "util.h"
 
+Itdb_Mhbd *parse_mhbd(char *cts, long seek = 0);
+long parse_mhit(char *cts, long seek = 0);
 
-char *init_header(char header[4]);
-Itdb_Mhod * write_mode_type_1(char *data, uint32 len);
-Itdb_Mhod * write_mode_type_2(char *data, uint32 len);
-Itdb_Mhod * write_mode_type_6(char *data, uint32 len = 0);
-Itdb_Mhod * write_mode_type_3(char *data, uint32 len);
-Itdb_Mhod * write_mode_type_4(char *data, uint32 len);
-Itdb_Mhod * write_mode_type_0xa6(char *data, uint32 len);
+char *itdb_mhsd(Itdb_Ringtone *itdb, int index = 1);
+char *itdb_mhlt(char *mhsd, int index = 1);
+char *itdb_mhit(char *mhlt, int index = 1);
+void itdb_mhods(char *mhit, int index = 1);
+#endif

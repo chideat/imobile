@@ -1,130 +1,108 @@
-
+#include <string.h>
+#include <stdio.h>
 #include "ringtone-parse.h"
 
+Itdb_Mhbd *parse_mhbd(char *cts, long seek) {
+    Itdb_Mhbd *mhbd = (Itdb_Mhbd *)cts;
 
-char *init_header(char header[4]){
-    char *buf = new char[MAX_BUF];
-    memset(buf, 0, sizeof(buf));
-
-    Itdb_Mhod *mhod = (Itdh_Mhod *)buf;
-    strncpy(mhod->header, header, 4);
-    mhod->header_len = sizeof(Itdb_Mhod_Header);
+    printf("mhbd header_len: %u\n", mhbd->header_len);
+    printf("mhbd total_len: %u\n", mhbd->total_len);
+    printf("mhbd version: %u\n", mhbd->version);
+    printf("mhbd num_children: %u\n", mhbd->num_children);
+    printf("mhbd db_id: %llu\n", mhbd->db_id);
+    printf("mhbd paltform: %u\n", mhbd->platform);
+    printf("mhbd hashing_scheme: %llu\n", mhbd->hashing_scheme);
+    printf("mhbd language_id: %c%c\n", mhbd->language_id[0], mhbd->language_id[1]);
+    printf("mhbd timezone offset: %llu\n", mhbd->timezone_offset);
     
-    return buf;
+    return mhbd;
+}
+
+char *itdb_mhsd(Itdb_Ringtone *itdb, int index) {
+    char *cts = itdb->cts->contents;
+    uint32 header_len = *(uint32 *)(cts + 4);
+    uint32 total_len = *(uint32 *)(cts + 8);
+    char *mhsd = cts + header_len;
+    int child_count = 0;
+    while (mhsd < cts + total_len && child_count < *(uint32 *)(cts + 20)) {
+        child_count ++;
+        if (mhsd[0] == 'm' && mhsd[1] == 'h' && mhsd[2] == 's' && mhsd[3] == 'd') {
+            // ringtone type
+            if (*(uint32 *)(mhsd + 12) == 1)
+                break;
+            mhsd = mhsd + *(uint32 *)(mhsd + 8);
+        }
+    }
+    return mhsd;
 }
 
 
-
-
-/**
- * deal with
- *     header length
- *     total length
- *     encode
- * name
- */
-Itdb_Mhod * write_mode_type_1(char *data, uint32 len) {
-    uint32 size;
-    char **buf;
-    convert_utf8_to_utf16(data, len, buf, &size);
-    Itdb_Mhod *mhod = (Itdb_Mhod *) init_header();
-    memcpy(mhod->data, *buf, size);
-    delete *buf;
-
-    // set length
-    mhod->length = size;
-    mhod->unk_0xa8 = 0x1;  // encoding: 0 UTF-8, 1 UTF-16 
-    mhod->type = 0x1;
-    mhod->total_len = mhod->header_len + 4 + 4 + 8 + size;
-    return mhod;
+char *itdb_mhlt(char *mhsd, int index) {
+    char *mhlt = mhsd + *(uint32 *)(mhsd + 4);
+    return mhlt;
 }
 
-
-/**
- * deal with
- *     header length
- *     total length
- *     encode
- * iTunes_Control:Ringtones:FLOW.m4r
- */
-Itdb_Mhod * write_mode_type_2(char *data, uint32 len) {
-    char *data_n = new char[len + 25];
-    char ringtone[] = "iTunes_Control:Ringtones:";
-    memcpy(data_n, ringtone, strlen(ringtone));
-    memcpy(data_n + strlen(ringtone), data, len);
-    len = strlen(ringtone) + len;
+long parse_mhit(char *cts, long seek) {
+    Itdb_Mhit *mhit = (Itdb_Mhit *)cts;
     
-    char **buf;
-    uint32 size;
-    convert_utf8_to_utf16(data_n, len, buf, &size);
+    printf("id: %u\n", mhit->id);
+    printf("type1: %d\n", mhit->type1);
+    printf("type2: %d\n", mhit->type2);
+    printf("rating: %d\n", mhit->rating);
+    printf("time_modified: %u\n", mhit->time_modified - 2082844800);
+    printf("time_added: %u\n", mhit->time_added - 2082844800);
+    printf("filesize: %d\n", mhit->size);
+    printf("filetype_maker: %u\n", mhit->filetype_marker);
+    printf("trackLen: %u\n", mhit->tracklen);
+    printf("media type: %u, unk204: %u\n", mhit->mediatype, mhit->unk204);
+    printf("mark unplayed: %u\n", mhit->mark_unplayed);
+    printf("mark unplayed unk: %u\n", mhit->unk179);
+    printf("unk144: %u\n", mhit->unk144);
+    printf("164 has_artwork: %u\n", mhit->has_artwork);
 
-    Itdb_Mhod *mhod = (Itdb_Mhod *) init_header();
-    memcpy(mhod->data, *buf, size);
-
-
-    delete *buf;
-    // set length
-    mhod->length = size;
-    mhod->unk_0xa8 = 0x1;  // encoding: 0 UTF-8, 1 UTF-16 
-    mhod->type = 0x2;
-    mhod->total_len = mhod->header_len + 4 + 4 + 8 + size;
-    return mhod;
+    printf("unk 288: %u,  %X\n", mhit->unk288_id, mhit->unk288_id);
+    printf("unk 480: %u,  %X\n", mhit->unk480_id, mhit->unk480_id);
+    printf("unk 500: %u,  %X\n", mhit->unk500, mhit->unk500);
 }
 
-/**
- * deal with
- *     header length
- *     total length
- *     encode
- * Ringtone
- */
-Itdb_Mhod * write_mode_type_6(char *data, uint32 len) {
-    char data[] = "Ringtone";
-    char **buf;
-    uint32 size;
-    convert_utf8_to_utf16(data, sizeof(data), buf, &len);
-
-    Itdb_Mhod *mhod = (Itdb_Mhod *) init_header();
-    memcpy(mhod->data, *buf, size);
-
-    delete *buf;
-    // set length
-    mhod->length = size;
-    mhod->unk_0xa8 = 0x1;  // encoding: 0 UTF-8, 1 UTF-16 
-    mhod->type = 0x6;
-    mhod->total_len = mhod->header_len + 4 + 4 + 8 + size;
-    return mhod;
+char *itdb_mhit(char *mhlt, int index) {
+    char *mhit = mhlt + *(uint32 *)(mhlt + 4);
+    uint32 header_len = *(uint32 *)(mhlt + 4);
+    uint32 count = *(uint32 *)(mhlt + 8);
+    uint32 mhit_total_len;
+    for (int i = 0; i < count; i ++) {
+        if (mhit[0] == 'm' && mhit[1] == 'h' && mhit[2] == 'i' && mhit[3] == 't') {
+            parse_mhit(mhit, 0);
+            itdb_mhods(mhit);
+            mhit_total_len = *(uint32 *)(mhit + 8);
+            mhit = mhit + mhit_total_len;
+        }
+        else 
+            fprintf(stderr, "escape\n");
+        printf("===============================\n");
+    }
+    return mhit;
 }
 
-
-
-
-/**
- * deal with
- *     header length
- *     total length
- *     encode
- * Ringtone
- */
-Itdb_Mhod * write_mode_type_3(char *data, uint32 len) {
-}
-
-/**
- * deal with
- *     header length
- *     total length
- *     encode
- * Ringtone
- */
-Itdb_Mhod * write_mode_type_4(char *data, uint32 len) {
-}
-
-/**
- * deal with
- *     header length
- *     total length
- *     encode
- * Ringtone
- */
-Itdb_Mhod * write_mode_type_0xa6(char *data, uint32 len) {
+void itdb_mhods(char *mhit, int index) {
+    uint32 mhit_header_len = *(uint32 *)(mhit + 4);
+    uint32 count = *(uint32 *)(mhit + 12);
+    fprintf(stderr, "mhit header len: %u\n", mhit_header_len);
+    fprintf(stderr, "mhit count : %u\n", count);
+    char *mhod = mhit + *(uint32 *)(mhit + 4);
+    uint32 mhod_total_len;
+    for (int i = 0; i < count; i ++) {
+        if (mhod > mhit + *(uint32 *)(mhit + 8)) {
+            mhod = NULL;
+            break;
+        }
+        if (mhod[0] == 'm' && mhod[1] == 'h' && mhod[2] == 'o' && mhod[3] == 'd') {
+            mhod_total_len = *(uint32 *)(mhod + 8);
+            printf("mhod header len: %u, %u\n", *(uint32 *)(mhod + 4), *(uint32 *)(mhod + 8));
+            // for (int j = 0; j < mhod_total_len; j++) {
+            //     printf("%c", mhod[j]);
+            // }
+            mhod = mhod + mhod_total_len;
+        }
+    }
 }
