@@ -1,7 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-
 #ifndef uint32
 #define uint32 unsigned int
 #endif
@@ -43,7 +42,7 @@
 #include "ConvertUTF.h"
 #include <string.h>
 
-void convert_utf8_to_utf16(char *source, uint32 len_s, char **target, uint32 *len_t) {
+static void convert_utf8_to_utf16(char *source, uint32 len_s, char **target, uint32 *len_t) {
     const UTF8 *sourceStart = (UTF8 *)source;
     UTF8 *sourceEnd = (UTF8 *)(source + len_s);
     UTF16 *targetStart, *targetEnd;
