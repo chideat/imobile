@@ -1,4 +1,9 @@
+#ifndef ITDB_ZLIB_H
+#define ITDB_ZLIB_H
+
 #include "itdb.h"
+#include <stdio.h>
+#include <zlib.h>
 
 #define CHUNK 16384
 
@@ -153,3 +158,5 @@ int itdb_zlib_compress (Itdb_Ringtone *itdb) {
 
     return 1;
 }
+
+#endif

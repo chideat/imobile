@@ -4,9 +4,7 @@
 #include "itdb.h"
 #include "itdb_tz.h"
 #include "itdb_zlib.h"
-#include "util.h"
-
-#define iT_DB "./sample/iTunesCDB"
+#include "ringtone-parse.h"
 
 
 void itdb_mhods(char *mhit, int index = 1);
@@ -30,18 +28,18 @@ char *itdb_mhbd(char *cts, long seek = 0) {
     mhbd->db_persistent_id = get64uint(cts, seek + 72);
     mhbd->unk_0x50 = get32uint(cts, seek + 80);
     mhbd->unk_0x54 = get32uint(cts, seek + 0x54);
-    mhbd->hash58 = getuchar(cts, seek + 88);
+    mhbd->hash58 = get8uint(cts, seek + 88);
     mhbd->timezone_offset = get32int(cts, seek + 108);
     mhbd->unk_0x70 = get16uint(cts, seek + 0x70);
-    mhbd->hash72 = getuchar(cts, seek + 114);
+    mhbd->hash72 = get8uint(cts, seek + 114);
     mhbd->audio_language = get16uint(cts, seek + 160);
     mhbd->subtitle_language = get16uint(cts, seek + 162);
     mhbd->unk_0xa4 = get16uint(cts, seek + 0xa4);
     mhbd->unk_0xa6 = get16uint(cts, seek + 0xa6);
     mhbd->unk_0xa8 = get16uint(cts, seek + 0xa8);
-    mhbd->align_0xa9 = getuchar(cts, seek + 0xa9);
-    mhbd->hashAB = getuchar(cts, seek + 0xaa);
-    mhbd->padding = getuchar(cts, seek + 0xaa + 57);
+    mhbd->align_0xa9 = get8uint(cts, seek + 0xa9);
+    mhbd->hashAB = get8uint(cts, seek + 0xaa);
+    mhbd->padding = get8uint(cts, seek + 0xaa + 57);
 
 
     printf("mhbd header_len: %u\n", *mhbd->header_len);
