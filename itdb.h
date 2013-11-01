@@ -19,35 +19,35 @@ typedef struct _Itdb_Node {
 
 
 typedef struct _MhbdHeader {
-    char   *header_id; // 4
-    uint32 *header_len;
-    uint32 *total_len;
-    uint32 *unknown1;
-    uint32 *version;
-    uint32 *num_children;
-    uint64 *db_id;
-    uint16 *platform;
-    uint16 *unk_0x22;
-    uint64 *id_0x24;
-    uint32 *unk_0x2c;
-    uint16 *hashing_scheme;
-    uchar  *unk_0x32;// [20];
-    char   *language_id;// [2];
-    uint64 *db_persistent_id;
-    uint32 *unk_0x50;
-    uint32 *unk_0x54;
-    uchar  *hash58; //[20];
-    int32  *timezone_offset;
-    uint16 *unk_0x70;
-    uchar  *hash72; //[46];
-    uint16 *audio_language;
-    uint16 *subtitle_language;
-    uint16 *unk_0xa4;
-    uint16 *unk_0xa6;
-    uint16 *unk_0xa8;
-    uchar  *align_0xa9;
-    uchar  *hashAB; //[57];
-    uchar  *padding; // 
+    char   header_id[4]; // 4
+    uint32 header_len;
+    uint32 total_len;
+    uint32 unknown1;
+    uint32 version;
+    uint32 num_children;
+    uint64 db_id;
+    uint16 platform;
+    uint16 unk_0x22;
+    uint64 id_0x24;
+    uint32 unk_0x2c;
+    uint16 hashing_scheme;
+    uchar  unk_0x32[20];// [20];
+    char   language_id[2];// [2];
+    uint64 db_persistent_id;
+    uint32 unk_0x50;
+    uint32 unk_0x54;
+    uchar  hash58[20]; //[20];
+    int32  timezone_offset;
+    uint16 unk_0x70;
+    uchar  hash72[46]; //[46];
+    uint16 audio_language;
+    uint16 subtitle_language;
+    uint16 unk_0xa4;
+    uint16 unk_0xa6;
+    uint16 unk_0xa8;
+    uchar  align_0xa9;
+    uchar  hashAB[57]; //[57];
+    uchar  padding[]; // 
 } Itdb_Mhbd;
 
 typedef struct _Itdb_Mhit {
@@ -55,53 +55,50 @@ typedef struct _Itdb_Mhit {
     uint32 header_len;
     uint32 total_len;
     uint32 children;
-    /* end of new fields in libgpod 0.5.0 */
     uint32 id;
-    int32  size;
-    int32  tracklen;
-    int32  cd_nr;
-    int32  cds;
-    int32  track_nr;
-    int32  tracks;
-    int32  bitrate;
-    uint16 samplerate;
-    uint16 samplerate_low;
-    int32  year;
-    int32  volume;
-    uint32 soundcheck;
-    uint32 time_added;
-    uint32 time_modified;
-    uint32 time_played;
-    uint32 bookmark_time;
-    uint8  rating;
-    uint32 playcount;
-    uint32 playcount2;
-    uint32 recent_playcount;
-    bool   transferred;
-    int16  BPM;
-    uint8  app_rating;
+    uint32 visible;
+    uint32 filetype_marker;
     uint8  type1;
     uint8  type2;
     uint8  compilation;
+    uint8  rating;
+    uint32 time_modified;
+    int32  size;
+    int32  tracklen;
+    int32  track_nr;
+    int32  tracks;
+    int32  year;
+    int32  bitrate;
+    uint16 samplerate;
+    uint16 samplerate_low;
+    int32  volume;
     uint32 starttime;
     uint32 stoptime;
-    uint8  checked;
-    uint64 dbid;
+    uint32 soundcheck;
+    uint32 playcount;
+    uint32 playcount2;
+    uint32 time_played;
+    int32  cd_nr;
+    int32  cds;
     uint32 drm_userid;
-    uint32 visible;
-    uint32 filetype_marker;
+    uint32 time_added;
+    uint32 bookmark_time;
+    uint64 dbid;
+    uint8  checked;
+    uint8  app_rating;
+    int16  BPM;
     uint16 artwork_count;
-    uint32 artwork_size;
-    float  samplerate2;
     uint16 unk126;
+    uint32 artwork_size;
     uint32 unk132;
+    float  samplerate2;
     uint32 time_released;
     uint16 unk144;
     uint16 explicit_flag;
     uint32 unk148;
     uint32 unk152;
+    // header_len > 0xf4
     uint32 skipcount;
-    uint32 recent_skipcount;
     uint32 last_skipped;
     uint8  has_artwork;
     uint8  skip_when_shuffling;
@@ -123,15 +120,28 @@ typedef struct _Itdb_Mhit {
     uint32 episode_nr;
     uint32 unk220;
     uint32 unk224;
-    uint32 unk228, *unk232, *unk236, *unk240, *unk244;
+    uint32 unk228;
+    uint32 unk232;
+    uint32 unk236;
+    uint32 unk240;
+    uint32 unk244;
     uint32 gapless_data;
     uint32 unk252;
     uint16 gapless_track_flag;
     uint16 gapless_album_flag;
 
+
+    uint32 recent_playcount;
+    bool   transferred;
+    uint32 recent_skipcount;
+    // 256
+    char   unk256[32];
     uint32 unk288_id;
+    char   unk[188];
     uint32 unk480_id;
-    uint32 unk500_0;
+    char   unk484[16]; // 0
+    uint32 unk500; // 0
+    char   unk504[80];
 } Itdb_Mhit;
 
 
