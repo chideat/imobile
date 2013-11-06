@@ -3,6 +3,15 @@
 
 #include "util.h"
 
+enum ItdbChecksumType {
+    ITDB_CHECKSUM_UNKNOWN = -1,
+    ITDB_CHECKSUM_NONE    = 0,
+    ITDB_CHECKSUM_HASH58  = 1,
+    ITDB_CHECKSUM_HASH72  = 2,
+    ITDB_CHECKSUM_HASHAB  = 3
+};
+
+
 typedef struct {
     char *contents;
     unsigned int length;
@@ -18,12 +27,18 @@ typedef struct _Itdb_Node {
     char *buf;
 } Itdb_Node;
 
+typedef struct {
+    char name[64];
+    char index[32];
+    uint32 bitrate;
+    uint32 duration;
+} Ringtone;
 
 typedef struct _Itdb_Mhbd {
     char   header_id[4];    // 0
     uint32 header_len;      // 4
     uint32 total_len;       // 8
-    uint32 unknown1;        // 12
+    uint32 compressed;      // 12  1 not compressed, 2 compressed
     uint32 version;         // 16
     uint32 num_children;    // 20
     uint64 db_id;           // 24
@@ -45,7 +60,7 @@ typedef struct _Itdb_Mhbd {
     uint32 unk_0x54;         // 84
     uchar  hash58[20]; //[20];  // 88
     int32  timezone_offset;     // 108
-    uint16 unk_0x70;            // 112
+    uint16 checksum_type;       // 112
     uchar  hash72[46]; //[46];  // 114
     uint16 audio_language;      // 160
     uint16 subtitle_language;   // 162
@@ -151,10 +166,16 @@ typedef struct _Itdb_Mhit{
     char   unk264[24];        // 264
     uint32 unk288_id;         // 288
     uint32 unk292;            // 292
-    char   unk296[56];        // 296
+    uint32 unk296;            // 296
+    uint32 unk300;            // 300
+    uint32 unk304;            // 304
+    uint32 unk308;            // 308   8080 * 6
+    char   unk312[32];        // 312
+    uint64 unk344;            // 344
     uint32 mhii_link;         // 352
     uint32 unk356;            // 356
-    char   unk360[120];       // 360
+    uint32 unk360;            // 360
+    char   unk364[116];       // 364
     uint32 unk480_id;         // 480
     uint32 unk484;            // 484
     uint64 unk488;            // 488

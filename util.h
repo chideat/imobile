@@ -1,6 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdlib.h>
+#include <time.h>
+
 #ifndef uint32
 #define uint32 unsigned int
 #endif
@@ -63,7 +66,7 @@ static void convert_utf8_to_utf16(char *source, uint32 len_s, char **target, uin
 
 
 inline uint32 _id() {
-
+    return rand() % 10000 + 1000;
 }
 
 

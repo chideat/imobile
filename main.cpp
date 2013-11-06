@@ -2,7 +2,11 @@
 #include "itdb_zlib.h"
 #include <stdio.h>
 
+
 int main(int argc, char **argv) {
+    time_t seed;
+    time(&seed);
+    srand(seed);
     char name[128] = "sample/iTunesCDB";
     if (argc == 2) {
         sprintf(name, "%s%s", name, argv[1]);
@@ -39,15 +43,16 @@ int main(int argc, char **argv) {
 
     parse_mhbd(itdb->cts->contents);
     
-    char *cts = itdb_mhsd(itdb, 3);
+    char *cts = itdb_mhsd(itdb->cts->contents);
     char *mhlt = itdb_mhlt(cts);
-    char *mhit = itdb_mhit(mhlt, 5);
+    char *mhit = itdb_mhit(mhlt);
 
     fclose(file);
     delete itdb->cts->contents;
     delete itdb->cts;
     delete itdb;
 
-    printf("sizeof float: %d\n", sizeof(Itdb_Mhbd));
+    printf("sizeof float: %d\n", sizeof(Itdb_Mhit));
+    printf("seed: %u, id: %u\n", seed,  _id());
     return 0;
 }

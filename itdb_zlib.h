@@ -103,6 +103,7 @@ int itdb_zlib_decompress(Itdb_Ringtone *itdb) {
             delete cts->contents;
             cts->contents = n_contents;
             cts->length = u_size + h_size;
+            *(uint32 *)(cts->contents + 8) = cts->length;
         }
         else
             throw 1;

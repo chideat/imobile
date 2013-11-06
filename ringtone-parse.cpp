@@ -18,22 +18,20 @@ Itdb_Mhbd *parse_mhbd(char *cts, long seek) {
     return mhbd;
 }
 
-char *itdb_mhsd(Itdb_Ringtone *itdb, int index) {
-    char *cts = itdb->cts->contents;
-    uint32 header_len = *(uint32 *)(cts + 4);
-    uint32 total_len = *(uint32 *)(cts + 8);
-    char *mhsd = cts + header_len;
-    int child_count = 0;
-    while (mhsd < cts + total_len && child_count < *(uint32 *)(cts + 20)) {
+char *itdb_mhsd(char *mhbd, int index) {
+    uint32 total_len = *(uint32 *)(mhbd + 8);
+    char *mhsd = mhbd + *(uint32 *)(mhbd + 4);
+    uint32 child_count = 0;
+    while (mhsd < mhbd + total_len && child_count < *(uint32 *)(mhbd + 20)) {
         child_count ++;
         if (mhsd[0] == 'm' && mhsd[1] == 'h' && mhsd[2] == 's' && mhsd[3] == 'd') {
             // ringtone type
-            if (*(uint32 *)(mhsd + 12) == 1)
-                break;
+            if (*(uint32 *)(mhsd + 12) == 0x01)
+                return mhsd;
             mhsd = mhsd + *(uint32 *)(mhsd + 8);
         }
     }
-    return mhsd;
+    return NULL;
 }
 
 
@@ -61,21 +59,22 @@ long parse_mhit(char *cts, long seek) {
     printf("164 has_artwork: %u\n", mhit->has_artwork);
 
     printf("unk 288: %u,  %X\n", mhit->unk288_id, mhit->unk288_id);
+    printf("unk 308: %X\n", mhit->unk308);
+    printf("unk344 %llu\n", mhit->unk344);
+    printf("360 %u\n", mhit->unk360);
     printf("unk 480: %u,  %X\n", mhit->unk480_id, mhit->unk480_id);
     printf("unk 500: %u,  %X\n", mhit->unk500, mhit->unk500);
 }
 
 char *itdb_mhit(char *mhlt, int index) {
     char *mhit = mhlt + *(uint32 *)(mhlt + 4);
-    uint32 header_len = *(uint32 *)(mhlt + 4);
-    uint32 count = *(uint32 *)(mhlt + 8);
+    uint32 header_len = *(uint32 *)(mhit + 4);
     uint32 mhit_total_len;
-    for (int i = 0; i < count; i ++) {
+    for (int i = 0; i < *(uint32 *)(mhlt + 8); i ++) {
         if (mhit[0] == 'm' && mhit[1] == 'h' && mhit[2] == 'i' && mhit[3] == 't') {
             parse_mhit(mhit, 0);
             itdb_mhods(mhit);
-            mhit_total_len = *(uint32 *)(mhit + 8);
-            mhit = mhit + mhit_total_len;
+            mhit = mhit + *(uint32 *)(mhit + 8);
         }
         else 
             fprintf(stderr, "escape\n");
